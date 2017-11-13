@@ -12,7 +12,7 @@ lexer = ox.make_lexer([
     ('read', r'read')
 ])
 
-tokens = ['dec', 'inc', 'right', 'left', 'print']
+tokens = ['dec', 'inc', 'right', 'left', 'print', 'loop', 'lpar', 'rpar', 'read']
 
 source = input('lispf_ck: ')
 tokens = lexer(source)
