@@ -1,5 +1,6 @@
 import ox
 import click
+import pprint
 
 lexer = ox.make_lexer([
     ('LOOP', r'loop'),
@@ -15,17 +16,15 @@ lexer = ox.make_lexer([
     ('DO_AFTER', r'do-after'),
     ('DO_BEFORE', r'do-before'),
     ('ADD', r'add'),
+    ('SUB', r'sub'),
     ('NUMBER', r'[0-9]+'),
-    ('COMMENT', r';[^\n]*'),
-    ('BREAK_LINE', r'\n'),
-    ('SPACE', r'\s')
+    ('ignore_COMMENT', r';[^\n]*'),
+    ('ignore_BREAK_LINE', r'\n'),
+    ('ignore_SPACE', r'\s+')
 ])
 
-tokens = ['DEC',
+tokens_list = ['DEC',
           'INC',
-          'RIGHT',
-          'LEFT',
-          'PRINT',
           'LOOP',
           'LPAR',
           'RPAR',
@@ -37,18 +36,40 @@ tokens = ['DEC',
           'DO_AFTER',
           'DO_BEFORE',
           'ADD',
-          'NUMBER',
-          'COMMENT',
-          'BREAK_LINE',
-          'SPACE']
+          'SUB',
+          'NUMBER']
+
+parser = ox.make_parser([
+    ('expr : LPAR RPAR', lambda x,y: '()'),
+    ('expr : LPAR term RPAR', lambda x,y,z: y),
+    ('term : atom term', lambda x,y: (x,) + y),
+    ('term : atom', lambda x : (x,)),
+    ('atom : expr', lambda x : x),
+    ('atom : DEC', lambda x : x),
+    ('atom : INC', lambda x : x),
+    ('atom : LOOP', lambda x : x),
+    ('atom : RIGHT', lambda x : x),
+    ('atom : LEFT', lambda x : x),
+    ('atom : PRINT', lambda x : x),
+    ('atom : READ', lambda x : x),
+    ('atom : DO', lambda x : x),
+    ('atom : DO_AFTER', lambda x : x),
+    ('atom : DO_BEFORE', lambda x : x),
+    ('atom : ADD', lambda x : x),
+    ('atom : SUB', lambda x : x),
+    ('atom : NUMBER', lambda x : x),
+], tokens_list)
 
 @click.command()
 @click.argument('source', type=click.File('r'))
 
-def make_ast(source):
+def make_tree(source):
     source_code = source.read()
     tokens = lexer(source_code)
-    print('tokens: ', tokens)
+    print('Lista de Tokens:\n', tokens)
+    tree = parser(tokens)
+    print("\nArvore Sintatica:")
+    pprint.pprint(tree)
 
 if __name__ == '__main__':
-    make_ast()
+    make_tree()
